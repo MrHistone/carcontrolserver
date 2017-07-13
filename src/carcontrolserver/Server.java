@@ -20,7 +20,8 @@ public class Server {
     private Car car;
     private boolean carAvailable;
     private Coordinates coordinates;
-    private DecimalFormat df = new DecimalFormat("#"); 
+    private DecimalFormat df = new DecimalFormat("#");
+    private CarMotion carMotion;
 
     public Server(int port, boolean carAvailable) {
         // the port
@@ -147,9 +148,30 @@ public class Server {
 
         public void run() {
             while (keepGoing) {
-                receiveObject();
+                receiveCarMotion();
             }
             close();
+        }
+
+        private void receiveCarMotion() {
+            try {
+                carMotion = (CarMotion) sInput.readObject();
+                if (carMotion.getAngle() != 0 || carMotion.getVerticalMovement() != 0) {
+
+                    display(
+                            "Angle: " + carMotion.getAngle() + "\t\t"
+                            + "VerticalMovement: " + carMotion.getVerticalMovement()
+                    );
+                }
+            } catch (ClassCastException ex) {
+                display("Object received cannot be cast to an instance of class Coordinates. " + ex);
+            } catch (IOException e) {
+                display("Disconnected...: " + e);
+                keepGoing = false;
+            } catch (ClassNotFoundException e2) {
+                display("ClassNotFoundException" + e2);
+                keepGoing = false;
+            }
         }
 
         private void receiveObject() {
